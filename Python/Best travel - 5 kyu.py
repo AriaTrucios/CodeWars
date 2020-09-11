@@ -30,7 +30,11 @@ def choose_best_sum(t, k, ls):
         return answer
 
 xs = [100, 76, 56, 44, 89, 73, 68, 56, 64, 123, 2333, 144, 50, 132, 123, 34, 89]
-choose_best_sum(2333, 5, xs) # 2333
+
+
+print(
+    choose_best_sum(2333, 5, xs) # 2333
+    )
 
 
 # best solution:
