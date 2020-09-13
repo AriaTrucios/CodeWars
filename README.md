@@ -1,10 +1,7 @@
 # CodeWars
 A repo to house all the Code Wars challenges I complete.
 
-Not super complicated.
+Python is the language I am trying to gain experience in. However, I have experience with the below technologies as well:
 
-CodeWars challenge in comment at top.
-
-My code in middle.
-
-Code from someone else, the one with highest rated "best practices" / that I found neat / creative, at the bottom.
+PLC Programming: Ladder Logic, VB, Logic Block
+Foundational Experience: Java, C/C++
