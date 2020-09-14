@@ -113,7 +113,10 @@ def damaged_or_sunk(board, attacks):
                         if 
 
            """
-           
+           IF STATEMENTS ARE FREE
+
+           GO THROUGH AND NEST IF STATEMENTS TO HUNT FOR NEW POSITIONS
+           REMEMBER THAT THE WAY YOU'RE INCRIMENTING, I LOOPS FIRST THEN J
            """
                 
             
