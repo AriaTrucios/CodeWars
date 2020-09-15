@@ -110,7 +110,7 @@ def damaged_or_sunk(board, attacks):
             else: # either 2 or 3
                 if reference_board[j][i-1] == reference_board[j][i]:
                     if reference_board[j][i-2] == reference_board[j][i]:
-                        if 
+                        # add in comparison to check back that these adjacent guys have been hit
 
            """
            IF STATEMENTS ARE FREE
