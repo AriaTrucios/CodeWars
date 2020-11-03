@@ -35,19 +35,18 @@ board = [[0,0,0,2,2,0],
 attacks = [[2, 1], [1, 3], [4, 2]]
 damaged_or_sunk(board, attacks)
 """
-
 def calculate_score(sunk, damaged, not_touched):
     #calculates points from inputs
     points = sunk + (0.5 * damaged) + (-1 * not_touched)
 
     # returns int of points if points is a whole # (points % 1 == 0 for whole), else return float
-    return int(points) if points % 1 == 0 else points 
+    return int(points) if points % 1 == 0 else points
 
 def battle(map, attacks): 
     ships_hit = []
     for i in attacks:
-        x_pos = len(map[0]) - 1 - i[0]
-        y_pos = len(map) - 1 - i[1]
+        x_pos = i[0] - 1
+        y_pos = len(map) - i[1]
         if map[y_pos][x_pos] == 0:
             continue
         else:
@@ -65,7 +64,8 @@ def ship_identifier(map):
     # total_ship_list will be list of every ship on map 
     # (used to keep count of total ships for scorekeeping)
     total_ship_list = []
-    [[total_ship_list.append(i) for i in row if i != 0 and i not in total_ship_list] for row in ship_map]                  
+    [[total_ship_list.append(i) for i in row if i != 0 and i not in total_ship_list] for row in ship_map]
+    total_ship_list.sort()                  
     return ship_map, total_ship_list
 
 
@@ -74,76 +74,47 @@ def damaged_or_sunk(board, attacks):
     ship_map, total_ship_list = ship_identifier(board)
     aftermath_map, ships_hit  = battle(ship_map, attacks)
 
-    print("board, then aftermath_map, then ships_hit")
-    print(board)
-    print(aftermath_map, total_ship_list)                                 
-    print(ships_hit)
-
-
-# use Board for the virgin board
-# use Aftermath_Map for board with "#" for hits
+    # use Board for the virgin board
+    # use Aftermath_Map for board with "#" for hits
     
     sunk = 0
     damaged = 0
     not_touched = 0
 
-    count = total_ship_list      # use Count as token for how many ships to attempt
-    while count > 0:     # since Count == 0 when we're out of vessels, loop until it reaches 0
-        break
-
     for j in range(len(aftermath_map)): # J = each position in "y" axis of Hits_map
         for i in range(len(aftermath_map[0])):  # I = each position in "x" axis of Hits_map
             if aftermath_map[j][i] == 0:
                 continue
+
+            # if you got a hit, check what ship it belongs to, and if all instances of it are # on this map
+            # AND check to be sure it's on Ships_Hit, as if it's not, then we've checked it already!
+            if aftermath_map[j][i] == "#" and board[j][i] in ships_hit:    
+
+                # if number of ship is ANYWHERE on Aftermath_Map, then it wasn't sunk!
+                if any(board[j][i] in x for x in aftermath_map):
+                    damaged += 1
+                    ships_hit.remove(board[j][i])
+                    continue
+                
+                # if above wasn't caught, then it WAS completely sunk!
+                else:
+                    sunk += 1
+                    ships_hit.remove(board[j][i])
+                    continue
             
-            print(f'j = {j}, i = {i}, value = {aftermath_map[j][i]}')
+    not_touched = len(total_ship_list) - sunk - damaged
 
-            # ok, so you found either a hit or a ship. Time to check
-            # first check if ship length is 1 AND was hit
-            if board[j][i] == 1 and aftermath_map[j][i] == "#":                 
-                count -= 1  
-                sunk += 1
-                ships_hit.remove(ship_map[j][i])
-                print('value was SINGLE')
-                continue
+    answer = {
+        'sunk' : sunk,
+        'damaged' : damaged,
+        'not_touched' : not_touched,
+        'points' : calculate_score(sunk, damaged, not_touched)
+    }
 
-            # if current value was hit AND in ships_hit, then it WASN'T sunk
-            elif ship_map[j][i] in ships_hit and aftermath_map[j][i] == "#": 
-                count -=1
-                damaged += 1
-                ships_hit.remove(ship_map[j][i])
-                print('value was NOT SUNK')
-                continue
-
-            # count sunk vessels - because they were not found in aftermath_map,
-            # then they were SUNK. Add remaining count in ships_hit to Sunk
-            else:
-                print('exception caught')
-                print(f'current value is {aftermath_map[j][i]} at position {j},{i}')
-                continue
-    sunk += len(ships_hit)
-    count -= len(ships_hit)
-    print(f'sunk = {sunk}, damaged = {damaged}, not_touched = {not_touched}')
-    print(f'count = {count}')
-
-
-
-
-#
-#
-#       you derped, the ships can be ANY length, and the numbers identify which ship it is (of 3 max ships, max length is 4)
-#
-#
-#
-#
-#
-#
-
+    return answer
             
-
 
          
-
 board = [[0,0,0,2,2,0],
          [0,3,0,0,0,0],
          [0,3,0,1,0,0],
@@ -155,270 +126,82 @@ damaged_or_sunk(board, attacks)
 # Expected result: { 'sunk': 0, 'damaged': 2 , 'not_touched': 1, 'points': 0 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-##
-# cntr + r + e to run
-
-
-##########
-#
-# any(3 in row for row in board) # checks if there's any 3 left on board
-#
-
-
-"""def battle(aftermath_map, hits, attacks): 
-    # goes through each attack and builds 2 return arrays
-    # aftermath_map = combination of hits and board, hits = hits_map
-    for i in attacks:
-            # find target location for new attack
-        x_pos = len(aftermath_map[0]) - 1 - i[0]
-            # len(aftermath_map[0]) - 1 : gives indexed max pos of aftermath_map's "x" position
-            # - attacks[0][0] : subtracts x pos of next indexed attack
-            # X_pos is now pointing at the horizontal position of the next attack
-
-        y_pos = len(aftermath_map) - 1 - i[1]
-            # len(boaaftermath_maprd) - 1 : gives indexed max pos of aftermath_map's "y" position
-            # - attacks[0][0] : subtracts y pos of next indexed attack
-            # Y_pos is now pointing at the vertical position of the next attack
-
-        # if miss, move on to next attacks item
-        if aftermath_map[y_pos][x_pos] == 0:
-            continue
-        
-        else:
-            hits[y_pos][x_pos] = "#" # use "#" to indicate hits
-            aftermath_map[y_pos][x_pos] = "#"
-            continue
-    return aftermath_map, hits
-    # aftermath_map = combination of hits and board, hits = hits_map"""
-
-"""def identify_vessels(board):
-    #converts board to board_status, which uses a unique letter for each vessel, starting with "a" == chr(97)
-    total_ship_list = 0                 # total_ship_list will be flag to keep track of which unique character we're on
-    print(board)
-    print(len(board))
-    for j in range(len(board)): # J = each position in "y" axis of board
-        for i in range(len(board[0])):  # I = each position in "x" axis of board
-            print(j,i, board[j][i])
-            if board[j][i] == 0 or type(board[j][i]) == str: 
-                continue                # if current position is 0 -empty-, or is a string, move on
-            elif board[j][i] == 1:
-                board[j][i] = chr(total_ship_list + 97) 
-                total_ship_list += 1    # reassign current position to next unique char, in order
-                continue                # with Unique_Identit = 0 giving chr(97) = "a"
-            else:        
-                # you just hit a spot that's not a string, 0, or 1! Time to check for where the rest of your ship is
-                print("you just got a tricky one! next print statements will indicate board and current pos")
-                print(board)
-                print(j, i)
-                print("current val: ", board[j][i])
-
-                if board[j][i+1] == board[j][i]: # the space next to current one is the same! you have a streak going on
-                    if board[j][i+1] == 2 # indicates you got a streak of length 2
-
-                    if board[j][i+2] == board[j][i]: # indicates spot 3 spaces over is also the same - ship of length three"""
-            
-"""            if board[j][i] == 2:
-                if board[j+1][i] == 2:
-                    board[j][i] = chr(total_ship_list + 97)
-                    board[j+1][i] = chr(total_ship_list + 97)
-                    total_ship_list += 1
-                    continue
-                if board[j][i]"""
-
-"""def identify_vessels(board):
-    #converts board to board_status, which uses a unique letter for each vessel, starting with "a" == chr(97)
-    total_ship_list = 0                 # total_ship_list will be flag to keep track of which unique character we're on
-    val_flag = 0
-    for j in range(len(board)): # J = each position in "y" axis of board
-        for i in range(len(board[0])):  # I = each position in "x" axis of board
-            print(j,i, board[j][i])
-            if board[j][i] == 0 or type(board[j][i]) == str: 
-                continue                # if current position is 0 -empty-, or is a string, move on
-            elif board[j][i] == 1:
-                board[j][i] = chr(total_ship_list + 97) 
-                total_ship_list += 1    # reassign current position to next unique char, in order
-                continue                # with Unique_Identit = 0 giving chr(97) = "a"
-            elif val_flag != 0 and board[j][i] == val_flag: # indicates *immediately previous value* was the same
-                if val_flag == 2:       # you just found a 2 length ship! (horiz)
-                    board[j][i] = chr(total_ship_list + 97)
-                    board[j][i-1] = chr(total_ship_list + 97)
-                    total_ship_list += 1
-                    val_flag = 0
-                    continue
-                else:                   # you just found a 3 length ship! (horiz)
-                    print("val_flag else exceptioned - make sure next print is == 3")
-                    print(val_flag)
-                    board[j][i] = chr(total_ship_list + 97)
-                    board[j][i-1] = chr(total_ship_list + 97)
-                    board[j][i-2] = chr(total_ship_list + 97)
-                    total_ship_list += 1
-                    val_flag = 0
-                    continue
-            elif val_flag != 0 and ( board[j][i] == 1 or board[j][i] == 0 or type(board[j][i]) == str):
-                # if val_flag has value, you *just* previously indexed a ship of len >1
-                # if current space is either 1, 0, *or* a string, then check pos below previous position
-                if board[j+1][i-1] == """
-
-
-
-
-
-""" last known good:
-def calculate_score(sunk, damaged, not_touched):
-    #calculates points from inputs
-    points = sunk + (0.5 * damaged) + (-1 * not_touched)
-
-    # returns int of points if points is a whole # (points % 1 == 0 for whole), else return float
-    return int(points) if points % 1 == 0 else points 
-
-def battle(map, attacks): 
-    # build hits_map array to track locations where hits have occurred
-    # hits_map = [[0 for i in range(len(map[0]))] for j in range(len(map))]   # blank array to track what gets hit
-    ship_map = [row[:] for row in map]
-    ships_hit = []
-    for i in attacks:
-        x_pos = len(map[0]) - 1 - i[0]
-        y_pos = len(map) - 1 - i[1]
-        if map[y_pos][x_pos] == 0:
-            continue
-        else:
-            if map[y_pos][x_pos] not in ships_hit:
-                ships_hit.append(map[y_pos][x_pos])
-            map[y_pos][x_pos] = "#" # use "#" to indicate hits_map
-            continue
-    return map, ships_hit, ship_map
-
-
-
-def ship_identifier(map):
-    #converts map to ship_map, which uses a unique letter for each vessel, starting with "a" == chr(97)
-    ship_map = [row[:] for row in map]
-    print("check this matches board")
-    print(ship_map)
-    total_ship_list = 0                 # total_ship_list will be flag to keep track of which unique character we're on
-    for j in range(len(ship_map)): # J = each position in "y" axis of ship_map
-        for i in range(len(ship_map[0])):  # I = each position in "x" axis of ship_map
-            print(j,i, ship_map[j][i])
-            if ship_map[j][i] == 0 or type(ship_map[j][i]) == str: 
-                continue                # if current position is 0 -empty-, or is a string, move on
-            elif ship_map[j][i] == 1:
-                ship_map[j][i] = chr(total_ship_list + 97) 
-                total_ship_list += 1    # reassign current position to next unique char, in order
-                continue                # with Unique_Identit = 0 giving chr(97) = "a"
-            
-            # at this point, the current value at ship_map[j][i] is NOT a string, 0, or 1
-            # time to go hunting for ships >1 in length
-            
-            else:
-                if i < len(ship_map[0]) - 1 and ship_map[j][i+1] == ship_map[j][i]:    # the ship is horiz!
-                    if ship_map[j][i] == 2:          # catch if ship length is 2
-                        ship_map[j][i] = chr(total_ship_list + 97)
-                        ship_map[j][i+1] = chr(total_ship_list + 97)
-                        total_ship_list += 1
-                        continue
-                    else:                       # catch if ship length is 3
-                        print("current position HORIZ else exceptioned - make sure next print is == 3")
-                        print(ship_map[j][i])
-                        ship_map[j][i] = chr(total_ship_list + 97)
-                        ship_map[j][i+1] = chr(total_ship_list + 97)
-                        ship_map[j][i+2] = chr(total_ship_list + 97)
-                        total_ship_list += 1
-                        continue  
-                elif j < len(ship_map) - 1 and ship_map[j+1][i] == ship_map[j][i]:    # the ship is horiz!
-                    if ship_map[j][i] == 2:          # catch if ship length is 2
-                        ship_map[j][i] = chr(total_ship_list + 97)
-                        ship_map[j+1][i] = chr(total_ship_list + 97)
-                        total_ship_list += 1
-                        continue
-                    else:                       # catch if ship length is 3
-                        print("current position VERT else exceptioned - make sure next print is == 3")
-                        print(ship_map[j][i])
-                        ship_map[j][i] = chr(total_ship_list + 97)
-                        ship_map[j+1][i] = chr(total_ship_list + 97)
-                        ship_map[j+2][i] = chr(total_ship_list + 97)
-                        total_ship_list += 1
-                        continue    
-                else:
-                    print("parent comparitor else exceptioned - something went wrong")
-                    print(ship_map[j][i], "j =", j, "i =", i)
-    return ship_map, total_ship_list
-
+"""
+from collections import Counter
 
 def damaged_or_sunk(board, attacks):
-    ship_map, total_ship_list = ship_identifier(board)
-    aftermath_map, ships_hit, ship_map  = battle(ship_map, attacks)
-
-    print("board, then aftermath_map, then ships_hit")
-    print(board)
-    print(aftermath_map, total_ship_list)                                 
-    print(ships_hit)
-    print(ship_map)
-    
-    sunk = 0
-    damaged = 0
-    not_touched = 0
-
-    count = total_ship_list      # use Count as token for how many ships to attempt
-    while count > 0:     # since Count == 0 when we're out of vessels, loop until it reaches 0
-        break
-
-    for j in range(len(aftermath_map)): # J = each position in "y" axis of Hits_map
-        for i in range(len(aftermath_map[0])):  # I = each position in "x" axis of Hits_map
-            if aftermath_map[j][i] == 0:
-                continue
-            
-            print(f'j = {j}, i = {i}, value = {aftermath_map[j][i]}')
-
-            # ok, so you found either a hit or a ship. Time to check
-            # first check if ship length is 1 AND was hit
-            if board[j][i] == 1 and aftermath_map[j][i] == "#":                 
-                count -= 1  
+    # Invert board and shift attacks to 0 based indexcing
+    board = board[::-1]
+    attacks = [(r-1, c-1) for r, c in attacks]
+    # Quantify initial state
+    start_ships = Counter(v for r in board for v in r)
+    # Apply attacks
+    for r, c in attacks:
+        board[c][r] = "X"
+    # Quantify end state
+    end_ships = Counter(v for r in board for v in r)
+    # Analyse change in state
+    sunk, damaged, not_touched = 0, 0, 0
+    for id, count in start_ships.items():
+        if id != 0:
+            if end_ships[id] == count:
+                not_touched += 1
+            elif end_ships[id] == 0:
                 sunk += 1
-                ships_hit.remove(ship_map[j][i])
-                print('value was SINGLE')
-                continue
-
-            # if current value was hit AND in ships_hit, then it WASN'T sunk
-            elif ship_map[j][i] in ships_hit and aftermath_map[j][i] == "#": 
-                count -=1
-                damaged += 1
-                ships_hit.remove(ship_map[j][i])
-                print('value was NOT SUNK')
-                continue
-
-            # count sunk vessels - because they were not found in aftermath_map,
-            # then they were SUNK. Add remaining count in ships_hit to Sunk
             else:
-                print('exception caught')
-                print(f'current value is {aftermath_map[j][i]} at position {j},{i}')
-                continue
-    sunk += len(ships_hit)
-    count -= len(ships_hit)
-    print(f'sunk = {sunk}, damaged = {damaged}, not_touched = {not_touched}')
-    print(f'count = {count}')
+                damaged += 1
+    score = sunk + 0.5 * damaged - not_touched
+    return {'sunk': sunk, 'damaged': damaged, 'not_touched': not_touched, 'points': score}
+____________________________________________________________________________
 
+class CoastGuard:
+    def __init__(self, board):
+        self.board = board
+        self.score = { 'sunk': 0, 'damaged': 0 , 'not_touched': 0, 'points': 0}
+        self.boats = {
+            1: [],
+            2: [],
+            3: []
+        }
+        self.boatHits = {}
+        self.activateBoatRadar()
+    def activateBoatRadar(self):
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])):
+                boat_number = self.board[i][j]
+                if boat_number > 0:
+                    self.boats[boat_number].append([i,j])
+        for boat in self.boats:
+            if len(self.boats[boat]) > 0:
+                self.boatHits[boat] = []
+    def calculate_score(self):
+        for boat in self.boatHits:
+            if len(self.boatHits[boat]) == len(self.boats[boat]):
+                self.score['sunk'] += 1
+                self.score['points'] += 1
+            elif len(self.boatHits[boat]) == 0:
+                self.score['not_touched'] += 1
+                self.score['points'] -= 1
+            else:
+                self.score['damaged'] += 1
+                self.score['points'] += 0.5
+        return self.score
+                
+    def damage(self, index_coords, boat):
+        print(index_coords)
+        self.boatHits[boat].append(index_coords)
+        return
 
-
-
-#
-#
-#       you derped, the ships can be ANY length, and the numbers identify which ship it is (of 3 max ships, max length is 4)
-#
-#
-#
-#
-#
-#
-
+def damaged_or_sunk (board, attacks):
+    coast_guard = CoastGuard(board)
+    for attack in attacks:
+        translation = translate(*attack)
+        boat_number = board[translation[0]][translation[1]]
+        if boat_number > 0:
+            coast_guard.damage(translation, boat_number)
+    return coast_guard.calculate_score()
+    
+def translate(x,y):
+    return [-y, x-1]
 """
+
